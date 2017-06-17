@@ -5,9 +5,16 @@ if(isset($_SESSION['vManager'])){
     if ($_POST['make'] && $_POST['model'] && $_POST['odometer'] && $_POST['type']){
         $vehicleManager = $_SESSION['vManager'];
         try{
-            $vehicleManager->addVehicle($_POST['make'],$_POST['model'],$_POST['odometer'],$_POST['type']);
-            $response_array['status'] = 'success';
-            echo json_encode($response_array);
+            $vehicleId = $vehicleManager->addVehicle($_POST['make'],$_POST['model'],$_POST['odometer'],$_POST['type']);
+            if($vehicleId != null){
+                $response_array['status'] = 'success';
+                $response_array['vehicleId'] = $vehicleId;
+                echo json_encode($response_array);   
+            } else{
+                $response_array['status'] = 'error';
+                $response_array['message'] ='Unable to register vehicle';
+                echo json_encode($response_array); 
+            }
         } catch (Exception $e){
             $response_array['status'] = 'error';
             $response_array["message"] ="Exception was caught";

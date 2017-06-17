@@ -5,10 +5,10 @@ if(isset($_SESSION['vManager'])){
     if (isset($_POST['vehicleId']) && isset($_POST['taskId']) && isset($_POST['progressUpdate'])){
         $vehicleManager = $_SESSION['vManager'];
         try{
-            $progressUpdate = $vehicleManager->updateTaskProgress($_POST['vehicleId'],$_POST['taskId'],$_POST['progressUpdate']);
+            if($vehicleManager->updateTaskProgress($_POST['vehicleId'],$_POST['taskId'],$_POST['progressUpdate'])){
             $response_array['status'] = 'success';
-            $response_array['newProgress'] = $progressUpdate;
             echo json_encode($response_array);
+            }
         } catch(Exception $e){
             $response_array['status'] = 'error';
             $response_array['message'] = 'Exception was caught';

@@ -13,6 +13,7 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/resources/lib/VehicleMaintenance/mode
             $this->vehicleList = array();
         }
         
+        //returns vehicle ID larger than 0 if successfull, null if not
         public function addVehicle($aMake, $aModel, $aOdometer, $aType){
             $vehicleId = $this->totalVehicleCount + 1;
             switch($aType){
@@ -32,9 +33,9 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/resources/lib/VehicleMaintenance/mode
                     $this->totalVehicleCount++;
                     break;
                 default:
-                    //throw exception
-                    break;
+                    return null;
             }
+            return $vehicleId;
         }
         
         public function getVehicleCount(){
@@ -50,6 +51,7 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/resources/lib/VehicleMaintenance/mode
                 return null;
         }
         
+        //Returns an array with basic vehicle attributes, its allowed maintenance tasks, and its task's properties. Returns null if vehicle is not found
         public function getVehicleInfo($aId){
             $vehicle = $this->getVehicleById($aId);
             
@@ -66,31 +68,50 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/resources/lib/VehicleMaintenance/mode
             $tasks = $vehicle->getTasks();
             
             $taskInfo = array();
-            $vehicleInfo["tasks"]= $taskInfo;
             
             foreach($tasks as $task){
-                array_push($taskInfo,array("taskId"=>$task->getId(), "taskType"=>$task->getType(), "taskProgress"=>$task->getProgress()));
+                array_push($taskInfo,array("taskId"=>$task->getId(), "taskType"=>$task->getType(), "taskProgress"=>$task->getCurrentProgress()));
             }
+            
+            $vehicleInfo["tasks"]= $taskInfo;
+            
             return $vehicleInfo;
         }
         
-        
-        public function getVehicleTaskDescription($aId, $aTaskId){
-            $vehicle = $this->getVehicleById($aId);
+        //Return true if odometer is successfully updated. Return null if not.
+        public function updateVehicleOdometer($aId,$aOdometer){
+            if(!is_numeric($aOdometer) || $aOdometer < 0)
+                return false;
+            if(($vehicle = $this->getVehicleById($aId)) == null)
+                return false;
             
-            $task = $vehicle->getTaskById($aTaskId);
+            $vehicle->setOdometer($aOdometer);
+                return true;
+        }
+        
+        
+        //Returns task Id, task type and current task progress of a given task. Returns null if unsuccessful
+        public function getVehicleTaskDescription($aId, $aTaskId){
+            if(($vehicle = $this->getVehicleById($aId)) == null)
+                return null;
+                
+            if(($task = $vehicle->getTaskById($aTaskId)) == null)
+                return null;
             
             $result = array("taskId"=>$aTaskId, "taskType"=>$task->getType(), "taskProgress"=>$task->getCurrentProgress());
             
             return $result; 
         }
         
+        //Updates a specific tasks current progress. $aProgress must match "NOT STARTED", "IN PROGRESS", or "COMPLETED". Returns true is successful, false if not
         public function updateTaskProgress($aId, $aTaskId, $aProgress){
-            $vehicle = $this->getVehicleById($aId);
+            if(($vehicle = $this->getVehicleById($aId)) == null)
+                return false;
              
-            $task = $vehicle->getTaskById($aTaskId);
+            if(($task = $vehicle->getTaskById($aTaskId)) == null)
+                return false;
             
-            $taskProgress;
+            $taskProgress = null;
             switch($aProgress){
                 case "NOT STARTED":
                     $taskProgress = TaskProgress::NOT_STARTED;
@@ -103,31 +124,28 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/resources/lib/VehicleMaintenance/mode
                     break;
                 default:
                     $taskProgress = null;
+                    return false;
             }
             
             if($task->updateProgress($taskProgress))
-                return $taskProgress;
+                return true;
             else
-                return null;
+                return false;
         }
         
-        //returns array of MaintenanceTask objects associated with vehicle of ID $aId
+        //Returns array of MaintenanceTask objects associated with vehicle of ID $aId. Returns null if no vehicle found
         public function getVehicleTaskList($aId){
             $vehicle = $this->getVehicleById($aId);
-            $result = $vehicle->getTasks();
-            return $result;
-        }
-        
-        //returns ID number, task type, and current task progress for each task associated with vehicle
-        public function getVehicleTaskListDescriptions($aId){
-            $list = $this->getVehicleTaskList($aId);
-            $result = array();
-            foreach($list as $task){
-                array_push($result, array("taskId"=>$task->getId(), "taskType"=>$task->getType(), "taskProgress"=>$task->getCurrentProgress()));
+
+            if($vehicle) {
+                $result = $vehicle->getTasks();
+                return $result;
+            } else {
+                return null;
             }
-            return $result;
         }
         
+        //Returns an array, storing task ID, and task type for each task stored within vehicle with ID $aId
         public function getVehicleTaskListItems($aId){
             $list = $this->getVehicleTaskList($aId);
             $result = array();
@@ -137,10 +155,12 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/resources/lib/VehicleMaintenance/mode
             return $result;
         }
         
+        //If task is successfully added, returns the task's ID, otherwise returns null
         public function addMaintenanceTask($aId,$aTaskType){
-            $vehicle = $this->getVehicleById($aId);
+            if(($vehicle = $this->getVehicleById($aId)) == null)
+                return null;
             
-            $taskTypeId;
+            $taskTypeId = null;
             
             switch($aTaskType){
                 case "OIL CHANGE":
@@ -154,18 +174,33 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/resources/lib/VehicleMaintenance/mode
                     break;
                 default:
                     $taskTypeId = null;
+                    return null;
             }
             
             try{
-            $vehicle->addTask($taskTypeId);
+               return $vehicle->addTask($taskTypeId);
+                
             } catch (InvalidTaskTypeException $e){
                 echo $e;
-                return false;
+                return null;
             }
             
-            return true;
-            
         }
+        
+        //if task is successfully removed, returns true. Otherwise returns false
+        public function removeMaintenanceTask($aId,$aTaskId){
+            if(($vehicle = $this->getVehicleById($aId)) == null)
+                return false;
+            
+            if(($task = $vehicle->getTaskById($aTaskId)) == null)
+                return false;
+            
+            if($vehicle->removeTask($task))
+                return true;
+            else
+                return false;
+        }
+        
         
         
         

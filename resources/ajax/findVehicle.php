@@ -24,7 +24,7 @@ if(isset($_SESSION['vManager'])){
 }
 else{
     $response_array['status'] = 'error';
-    $repsonse_array['message'] = 'Vehicle Manager Object not defined in session';
+    $response_array['message'] = 'Vehicle Manager Object not defined in session';
     echo json_encode($response_array);
 }
 ?>

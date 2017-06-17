@@ -1,7 +1,5 @@
 <?php
 require_once('taskProgress.php');
-require_once('taskProgressEntry.php');
-require_once('taskProgressLog.php');
 require_once('taskType.php');
 require_once('invalidTaskTypeException.php');
 
@@ -9,27 +7,25 @@ class MaintenanceTask{
     
     private $type;
     private $vehicleId;
+    
+    //$taskId only unique to its vehicle object
     private $taskId;
     
     private $currentTaskProgress;
-    private $progressLog;
     
     function __construct($aType, $aVehicleId, $aTaskId){
         switch ($aType) {
             case TaskType::OIL_CHANGE:
-                //do something
                 $this->type = $aType;
                 break;
             case TaskType::TIRE_ROT:
-                //do something
                 $this->type = $aType;
                 break;
             case TaskType::INSPECTION:
-                //do something
                 $this->type = $aType;
                 break;
             default;
-                //throw exception for invalid task
+                throw new InvalidTaskTypeException( get_class($this) . " This task is not a valid task type: " . $aType);
                 break; //remove later
         }
         
@@ -54,18 +50,15 @@ class MaintenanceTask{
         switch ($aProgress) {
             case TaskProgress::NOT_STARTED:
                 $this->currentTaskProgress = $aProgress;
-                //update progressLog
                 break;
             case TaskProgress::IN_PROGRESS:
                 $this->currentTaskProgress = $aProgress;
-                //update progressLog
                 break;
             case TaskProgress::COMPLETED:
                 $this->currentTaskProgress = $aProgress;
-                //update progressLog
                 break;
             default:
-                return null;
+                return false;
         }
         return true;
     }

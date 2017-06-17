@@ -41,15 +41,17 @@ class Vehicle{
         $this->tasksAdded++;
         $newTask = new MaintenanceTask($aTaskType, $this->id, $this->tasksAdded);
         array_push($this->tasks,$newTask);
+        return $this->tasksAdded;
     }
     
     public function removeTask($task){
         if(($key = array_search($task, $this->tasks)) !== false) {
             unset($this->tasks[$key]);
             $this->tasks = array_values($this->tasks);
+            return true;
         }
         else{
-            //no such task found
+            return false;
         }
         
     }
@@ -75,18 +77,15 @@ class Vehicle{
     }
     
     public function setModel($aModel){
-        $this->$model = aModel;
+        $this->model = aModel;
     }
     
     public function getOdometer(){
         return $this->odometer;
     }
-    
+
     public function setOdometer($aOdometer){
-        if($aOdometer < 0){
-            //throw Exception
-        }
-        $this->$odometer = $aOdometer;
+        $this->odometer = $aOdometer;
     }
     
     function __destruct(){

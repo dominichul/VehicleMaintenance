@@ -16,7 +16,7 @@ if(isset($_SESSION['vManager'])){
             }
         } else{
             $response_array["status"] = "error";
-            $response_array["message"] = "Vehicle ID or Task Type is not defined";
+            $response_array["message"] = "Vehicle ID or Task Type is not valid";
             echo json_encode($response_array); 
         }
     }
