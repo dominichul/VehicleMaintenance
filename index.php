@@ -8,7 +8,7 @@
 
 <body>
     <?php 
-    require_once("/resources/lib/VehicleMaintenance/controller/vehicleManager.php");
+    require_once($_SERVER['DOCUMENT_ROOT'] . "/resources/lib/VehicleMaintenance/controller/vehicleManager.php");
     require_once("nav.php");
     ?>
 
